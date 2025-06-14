@@ -1,0 +1,39 @@
+Photosynthesis is the process by which green plants and some bacteria convert light energy into chemical energy. This process occurs primarily in the chloroplasts of plant cells, specifically in structures called thylakoids.
+
+The overall equation for photosynthesis is:
+6CO2 + 6H2O + light energy → C6H12O6 + 6O2
+
+There are two main stages of photosynthesis:
+
+1. Light-dependent reactions (Photo stage):
+- Occur in the thylakoid membranes
+- Chlorophyll absorbs light energy
+- Water molecules are split (photolysis) releasing oxygen
+- ATP and NADPH are produced
+- Energy is captured and stored in chemical bonds
+
+2. Light-independent reactions (Calvin Cycle):
+- Occur in the stroma of chloroplasts
+- Also called the Calvin-Benson cycle
+- Carbon dioxide is fixed into organic molecules
+- Uses ATP and NADPH from light reactions
+- Produces glucose (C6H12O6)
+
+Key components involved:
+- Chlorophyll: The green pigment that captures light energy
+- Thylakoids: Membrane structures where light reactions occur
+- Stroma: The fluid-filled space where the Calvin cycle takes place
+- NADPH: An electron carrier that provides reducing power
+- ATP: Provides energy for the Calvin cycle
+
+Factors affecting photosynthesis:
+- Light intensity: Higher intensity increases rate up to a saturation point
+- Carbon dioxide concentration: Higher CO2 levels increase rate
+- Temperature: Optimal temperature range for enzyme activity
+- Water availability: Essential for photolysis and maintaining plant structure
+
+Photosynthesis is crucial for life on Earth as it:
+- Produces oxygen that most organisms need for respiration
+- Converts inorganic carbon into organic compounds
+- Forms the base of most food chains
+- Removes carbon dioxide from the atmosphere

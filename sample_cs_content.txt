@@ -1,0 +1,99 @@
+Computer Science - Data Structures and Algorithms
+
+Arrays
+An array is a fundamental data structure that stores elements of the same type in contiguous memory locations. Arrays provide constant-time access to elements using indices, making them efficient for random access operations.
+
+Key characteristics of arrays:
+- Fixed size (in most programming languages)
+- Elements are stored in contiguous memory
+- Zero-based indexing (in most languages)
+- O(1) time complexity for access operations
+- O(n) time complexity for search operations in unsorted arrays
+
+Linked Lists
+A linked list is a linear data structure where elements are stored in nodes, and each node contains data and a reference (or link) to the next node in the sequence.
+
+Types of linked lists:
+1. Singly Linked List: Each node points to the next node
+2. Doubly Linked List: Each node has pointers to both next and previous nodes
+3. Circular Linked List: The last node points back to the first node
+
+Advantages of linked lists:
+- Dynamic size allocation
+- Efficient insertion and deletion at the beginning (O(1))
+- Memory is allocated as needed
+
+Disadvantages:
+- No random access (O(n) to access elements)
+- Extra memory overhead for storing pointers
+- Poor cache locality
+
+Stacks
+A stack is a Last-In-First-Out (LIFO) data structure. Elements are added and removed from the same end, called the "top" of the stack.
+
+Primary operations:
+- Push: Add an element to the top
+- Pop: Remove the top element
+- Peek/Top: View the top element without removing it
+- isEmpty: Check if the stack is empty
+
+Applications of stacks:
+- Function call management
+- Expression evaluation
+- Undo operations in applications
+- Browser history navigation
+
+Queues
+A queue is a First-In-First-Out (FIFO) data structure. Elements are added at one end (rear) and removed from the other end (front).
+
+Primary operations:
+- Enqueue: Add an element to the rear
+- Dequeue: Remove an element from the front
+- Front: View the front element
+- isEmpty: Check if the queue is empty
+
+Types of queues:
+- Simple Queue: Basic FIFO structure
+- Circular Queue: Last position connects to first position
+- Priority Queue: Elements have priorities, higher priority elements are served first
+- Double-ended Queue (Deque): Insertion and deletion at both ends
+
+Binary Trees
+A binary tree is a hierarchical data structure where each node has at most two children, referred to as left child and right child.
+
+Tree terminology:
+- Root: The topmost node
+- Leaf: A node with no children
+- Height: The longest path from root to leaf
+- Depth: The distance from root to a specific node
+
+Binary Search Tree (BST):
+A special type of binary tree where:
+- Left subtree contains values less than the parent
+- Right subtree contains values greater than the parent
+- This property applies recursively to all subtrees
+
+BST operations:
+- Search: O(log n) average case, O(n) worst case
+- Insert: O(log n) average case, O(n) worst case
+- Delete: O(log n) average case, O(n) worst case
+
+Hash Tables
+A hash table (hash map) is a data structure that implements an associative array, mapping keys to values using a hash function.
+
+Components:
+- Hash Function: Converts keys into array indices
+- Buckets: Array positions where values are stored
+- Collision Resolution: Methods to handle when different keys hash to the same index
+
+Collision resolution techniques:
+1. Chaining: Store multiple values in the same bucket using linked lists
+2. Open Addressing: Find another empty bucket using probing
+   - Linear Probing: Check next available slot
+   - Quadratic Probing: Check slots at quadratic intervals
+   - Double Hashing: Use a second hash function
+
+Hash table performance:
+- Average case: O(1) for search, insert, delete
+- Worst case: O(n) when many collisions occur
+- Load factor affects performance: ratio of filled slots to total slots

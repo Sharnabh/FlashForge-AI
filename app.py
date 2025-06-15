@@ -312,6 +312,28 @@ st.markdown("""
             border: 2px solid var(--accent-color);
             margin: 1rem 0;
         }
+
+        /* Language selection styling */
+        .stSelectbox > div {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid var(--accent-color);
+            margin: 1rem 0;
+        }
+        
+        /* Language indicator */
+        .language-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -392,10 +414,12 @@ Rules:
 5. Keep answers concise but informative
 6. Focus on different aspects of the text than the previous questions
 7. Format questions and answers appropriately for {subject}:
+   - For Physics: Include formulas, units, and physical concepts. Use proper scientific notation and SI units.
+   - For Chemistry: Include chemical formulas, equations, and molecular structures. Use proper chemical notation.
+   - For Mathematics: Include formulas, equations, and step-by-step solutions. Use proper mathematical notation.
    - For Biology: Include scientific terms and concepts
    - For History: Include dates, events, and historical context
    - For Computer Science: Include technical terms and programming concepts
-   - For Mathematics: Include formulas and step-by-step solutions
    - For Literature: Include themes, characters, and literary devices
    - For General: Focus on key concepts and main ideas
 <</SYS>>
@@ -507,10 +531,12 @@ Rules:
 5. Keep answers concise but informative
 6. Focus on different aspects of the text than the previous questions
 7. Format questions and answers appropriately for {subject}:
+   - For Physics: Include formulas, units, and physical concepts. Use proper scientific notation and SI units.
+   - For Chemistry: Include chemical formulas, equations, and molecular structures. Use proper chemical notation.
+   - For Mathematics: Include formulas, equations, and step-by-step solutions. Use proper mathematical notation.
    - For Biology: Include scientific terms and concepts
    - For History: Include dates, events, and historical context
    - For Computer Science: Include technical terms and programming concepts
-   - For Mathematics: Include formulas and step-by-step solutions
    - For Literature: Include themes, characters, and literary devices
    - For General: Focus on key concepts and main ideas
 <</SYS>>
@@ -604,6 +630,66 @@ def export_quizlet(qa_pairs):
         writer.writerow([qa['question'], qa['answer']])
     return output.getvalue()
 
+# Add language selection and translation functions
+def translate_qa_pairs(qa_pairs, target_language):
+    try:
+        # Prepare all Q&A pairs in a single prompt
+        qa_text = "\n\n".join([f"Q: {qa['question']}\nA: {qa['answer']}" for qa in qa_pairs])
+        
+        prompt = f"""<s>[INST] <<SYS>>
+You are a helpful AI assistant that translates educational flashcards. Translate the following Q&A pairs to {target_language}.
+Maintain the same format with "Q:" and "A:" prefixes, and preserve the educational content while making it natural in {target_language}.
+<</SYS>>
+
+Q&A pairs to translate:
+{qa_text}
+
+Translate all pairs to {target_language}, maintaining the Q: and A: format: [/INST]</s>"""
+        
+        print(f"\nTranslating {len(qa_pairs)} Q&A pairs to {target_language}...")
+        translated_text = generate_with_together(prompt)
+        
+        if not translated_text:
+            print("\nNo translation received")
+            return qa_pairs
+            
+        print(f"\nTranslated text: {translated_text}")
+        
+        # Parse the translated Q&A pairs
+        translated_pairs = []
+        current_q = None
+        current_a = None
+        
+        for line in translated_text.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+                
+            if line.startswith('Q:'):
+                if current_q and current_a:
+                    translated_pairs.append({
+                        "question": current_q,
+                        "answer": current_a
+                    })
+                current_q = line[2:].strip()
+            elif line.startswith('A:'):
+                current_a = line[2:].strip()
+            elif current_q and not current_a:
+                current_a = line
+        
+        if current_q and current_a:
+            translated_pairs.append({
+                "question": current_q,
+                "answer": current_a
+            })
+        
+        print(f"\nTranslated {len(translated_pairs)} pairs")
+        return translated_pairs if translated_pairs else qa_pairs
+        
+    except Exception as e:
+        print(f"\nError in translation: {str(e)}")
+        return qa_pairs
+
 # Function to render flippable cards
 def render_flippable_cards(qa_pairs):
     if not qa_pairs:
@@ -612,8 +698,21 @@ def render_flippable_cards(qa_pairs):
         
     print(f"\nRendering {len(qa_pairs)} cards")
     
-    # Add edit mode toggle
-    edit_mode = st.checkbox("✏️ Edit Mode", help="Enable editing of questions and answers")
+    # Add language selection
+    col1, col2 = st.columns(2)
+    with col1:
+        edit_mode = st.checkbox("✏️ Edit Mode", help="Enable editing of questions and answers")
+    with col2:
+        target_language = st.selectbox(
+            "🌐 Language",
+            ["English", "Spanish", "French", "German", "Chinese", "Japanese", "Korean", "Russian", "Arabic", "Hindi"],
+            help="Select the language for the flashcards"
+        )
+    
+    # Translate if not English
+    if target_language != "English":
+        with st.spinner(f"Translating to {target_language}..."):
+            qa_pairs = translate_qa_pairs(qa_pairs, target_language)
     
     if edit_mode:
         # Create an editable interface
@@ -678,7 +777,7 @@ with st.sidebar:
     # Subject selection
     subject = st.selectbox(
         "📚 Subject",
-        ["General", "Biology", "History", "Computer Science", "Mathematics", "Literature"],
+        ["General", "Physics", "Chemistry", "Mathematics", "Biology", "History", "Computer Science", "Literature"],
         help="Select the subject to tailor the Q&A format"
     )
     

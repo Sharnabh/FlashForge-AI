@@ -5,6 +5,10 @@ import warnings
 import google.generativeai as genai
 import PyPDF2
 import docx
+import json
+import csv
+import io
+import pandas as pd
 
 # Filter out the legacy warning
 warnings.filterwarnings("ignore", message=".*legacy.*")
@@ -88,6 +92,37 @@ def generate_qa_pairs(text, num_questions, difficulty):
     except Exception as e:
         st.error(f"Error generating Q&A pairs: {str(e)}")
         return []
+
+# Function to export as CSV
+def export_csv(qa_pairs):
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Question', 'Answer'])
+    for qa in qa_pairs:
+        writer.writerow([qa['question'], qa['answer']])
+    return output.getvalue()
+
+# Function to export as JSON
+def export_json(qa_pairs):
+    return json.dumps(qa_pairs, indent=2)
+
+# Function to export as Anki format
+def export_anki(qa_pairs):
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter='\t')
+    writer.writerow(['Question', 'Answer'])
+    for qa in qa_pairs:
+        writer.writerow([qa['question'], qa['answer']])
+    return output.getvalue()
+
+# Function to export as Quizlet format
+def export_quizlet(qa_pairs):
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=',')
+    writer.writerow(['Term', 'Definition'])
+    for qa in qa_pairs:
+        writer.writerow([qa['question'], qa['answer']])
+    return output.getvalue()
 
 # Function to render flippable cards
 def render_flippable_cards(qa_pairs):
@@ -208,6 +243,57 @@ with st.sidebar:
     
     # Segmented control for difficulty
     difficulty = st.radio("Difficulty", ["Easy", "Medium", "Hard"])
+    
+    st.markdown("---")  # Add a separator
+    
+    # Export options (only shown if cards are generated)
+    if st.session_state.qa_pairs:
+        st.header("Export Flash Cards")
+        st.markdown("Choose a format to export your flash cards:")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("📊 CSV", use_container_width=True):
+                csv_data = export_csv(st.session_state.qa_pairs)
+                st.download_button(
+                    "Download CSV",
+                    csv_data,
+                    "flashcards.csv",
+                    "text/csv",
+                    use_container_width=True
+                )
+            
+            if st.button("📝 Anki", use_container_width=True):
+                anki_data = export_anki(st.session_state.qa_pairs)
+                st.download_button(
+                    "Download Anki",
+                    anki_data,
+                    "flashcards.txt",
+                    "text/plain",
+                    use_container_width=True
+                )
+        
+        with col2:
+            if st.button("🔷 JSON", use_container_width=True):
+                json_data = export_json(st.session_state.qa_pairs)
+                st.download_button(
+                    "Download JSON",
+                    json_data,
+                    "flashcards.json",
+                    "application/json",
+                    use_container_width=True
+                )
+            
+            if st.button("📚 Quizlet", use_container_width=True):
+                quizlet_data = export_quizlet(st.session_state.qa_pairs)
+                st.download_button(
+                    "Download Quizlet",
+                    quizlet_data,
+                    "flashcards.csv",
+                    "text/csv",
+                    use_container_width=True
+                )
 
 # Main content area
 # File uploader

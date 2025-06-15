@@ -325,11 +325,11 @@ def generate_with_together(prompt, max_tokens=1024):
         return None
 
 # Function to generate Q&A pairs for a single chunk
-def generate_qa_for_chunk(chunk, num_questions, difficulty):
+def generate_qa_for_chunk(chunk, num_questions, difficulty, subject):
     try:
-        # Prepare the prompt with Llama 3.3's instruction format
+        # Prepare the prompt with Llama 3.3's instruction format and subject-specific guidance
         prompt = f"""<s>[INST] <<SYS>>
-You are a helpful AI assistant that creates educational flashcards. Your task is to create exactly {num_questions} {difficulty.lower()} difficulty questions and answers based on the provided text.
+You are a helpful AI assistant that creates educational flashcards for {subject}. Your task is to create exactly {num_questions} {difficulty.lower()} difficulty questions and answers based on the provided text.
 
 IMPORTANT: You must format each question and answer pair exactly like this:
 Q: [Your question here]
@@ -341,11 +341,19 @@ Rules:
 3. Create exactly {num_questions} pairs
 4. Make questions {difficulty.lower()} difficulty
 5. Keep answers concise but informative
+6. Focus on different aspects of the text than the previous questions
+7. Format questions and answers appropriately for {subject}:
+   - For Biology: Include scientific terms and concepts
+   - For History: Include dates, events, and historical context
+   - For Computer Science: Include technical terms and programming concepts
+   - For Mathematics: Include formulas and step-by-step solutions
+   - For Literature: Include themes, characters, and literary devices
+   - For General: Focus on key concepts and main ideas
 <</SYS>>
 
 Text to analyze: {chunk}
 
-Now create {num_questions} Q&A pairs following the format above. [/INST]</s>"""
+Now create {num_questions} Q&A pairs following the format above, tailored for {subject}. [/INST]</s>"""
         
         print(f"\nGenerating Q&A for chunk with prompt: {prompt}")
         
@@ -404,7 +412,7 @@ Now create {num_questions} Q&A pairs following the format above. [/INST]</s>"""
 
 # Function to generate Q&A pairs using parallel processing
 @st.cache_data(ttl=3600)  # Cache results for 1 hour
-def generate_qa_pairs(text, num_questions, difficulty):
+def generate_qa_pairs(text, num_questions, difficulty, subject):
     if not text.strip():
         st.warning("Please provide some text or upload a file.")
         return []
@@ -427,7 +435,7 @@ def generate_qa_pairs(text, num_questions, difficulty):
             
             # Generate Q&A pairs in a single query
             print(f"\nGenerating {num_questions} questions...")
-            qa_pairs = generate_qa_for_chunk(text, num_questions, difficulty)
+            qa_pairs = generate_qa_for_chunk(text, num_questions, difficulty, subject)
             
             print(f"\nTotal Q&A pairs generated: {len(qa_pairs)}")
             
@@ -436,7 +444,7 @@ def generate_qa_pairs(text, num_questions, difficulty):
                 print("\nNot enough pairs generated, trying to generate more...")
                 # Try with a different prompt format
                 prompt = f"""<s>[INST] <<SYS>>
-You are a helpful AI assistant that creates educational flashcards. Your task is to create exactly {num_questions - len(qa_pairs)} {difficulty.lower()} difficulty questions and answers based on the provided text.
+You are a helpful AI assistant that creates educational flashcards for {subject}. Your task is to create exactly {num_questions - len(qa_pairs)} {difficulty.lower()} difficulty questions and answers based on the provided text.
 
 IMPORTANT: You must format each question and answer pair exactly like this:
 Q: [Your question here]
@@ -449,13 +457,20 @@ Rules:
 4. Make questions {difficulty.lower()} difficulty
 5. Keep answers concise but informative
 6. Focus on different aspects of the text than the previous questions
+7. Format questions and answers appropriately for {subject}:
+   - For Biology: Include scientific terms and concepts
+   - For History: Include dates, events, and historical context
+   - For Computer Science: Include technical terms and programming concepts
+   - For Mathematics: Include formulas and step-by-step solutions
+   - For Literature: Include themes, characters, and literary devices
+   - For General: Focus on key concepts and main ideas
 <</SYS>>
 
 Text to analyze: {text}
 
-Now create {num_questions - len(qa_pairs)} Q&A pairs following the format above. [/INST]</s>"""
+Now create {num_questions - len(qa_pairs)} Q&A pairs following the format above, tailored for {subject}. [/INST]</s>"""
                 
-                additional_pairs = generate_qa_for_chunk(text, num_questions - len(qa_pairs), difficulty)
+                additional_pairs = generate_qa_for_chunk(text, num_questions - len(qa_pairs), difficulty, subject)
                 qa_pairs.extend(additional_pairs)
             
             # Shuffle and limit to requested number of questions
@@ -587,6 +602,13 @@ if 'qa_pairs' not in st.session_state:
 with st.sidebar:
     st.header("🎮 Controls")
     
+    # Subject selection
+    subject = st.selectbox(
+        "📚 Subject",
+        ["General", "Biology", "History", "Computer Science", "Mathematics", "Literature"],
+        help="Select the subject to tailor the Q&A format"
+    )
+    
     # Slider for number of questions
     num_questions = st.slider("📊 Number of Questions", min_value=5, max_value=20, value=10)
     
@@ -659,7 +681,7 @@ if st.button("🎲 Generate Flash Cards", type="primary", use_container_width=Tr
     input_text = parse_file(uploaded_file) if uploaded_file else text_input
     
     # Generate Q&A pairs
-    st.session_state.qa_pairs = generate_qa_pairs(input_text, num_questions, difficulty)
+    st.session_state.qa_pairs = generate_qa_pairs(input_text, num_questions, difficulty, subject)
 
 # Display cards
 if api_key is not None:

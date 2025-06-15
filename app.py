@@ -12,21 +12,6 @@ warnings.filterwarnings("ignore", message=".*legacy.*")
 # Set page config
 st.set_page_config(page_title="Flash Card Game", layout="wide")
 
-# Title
-st.title("Flash Card Game")
-
-# File uploader
-uploaded_file = st.file_uploader("Upload a file (PDF, TXT, DOCX)", type=["pdf", "txt", "docx"])
-
-# Text input
-text_input = st.text_area("Or enter text directly:")
-
-# Slider for number of questions
-num_questions = st.slider("Number of Questions", min_value=5, max_value=20, value=10)
-
-# Segmented control for difficulty
-difficulty = st.radio("Difficulty", ["Easy", "Medium", "Hard"])
-
 # Initialize Gemini model
 @st.cache_resource
 def load_model():
@@ -113,22 +98,23 @@ def render_flippable_cards(qa_pairs):
     st.markdown("""
     <style>
     .card-container {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
-        justify-content: center;
         padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
     }
     .card {
         perspective: 1000px;
-        width: 300px;
-        height: 200px;
+        min-height: 200px;
         margin: 10px;
     }
     .card-inner {
         position: relative;
         width: 100%;
         height: 100%;
+        min-height: 200px;
         text-align: center;
         transition: transform 0.6s;
         transform-style: preserve-3d;
@@ -151,14 +137,31 @@ def render_flippable_cards(qa_pairs):
         justify-content: center;
         background: white;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        overflow-y: auto;
     }
     .card-back {
         transform: rotateY(180deg);
+    }
+    .card-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     .card h3 {
         margin: 0;
         font-size: 1.2em;
         line-height: 1.4;
+        max-width: 100%;
+    }
+    @media (min-width: 1200px) {
+        .card-container {
+            grid-template-columns: repeat(3, 1fr);
+        }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -172,10 +175,14 @@ def render_flippable_cards(qa_pairs):
         <div class="card">
             <div class="card-inner">
                 <div class="card-front">
-                    <h3>{qa['question']}</h3>
+                    <div class="card-content">
+                        <h3>{qa['question']}</h3>
+                    </div>
                 </div>
                 <div class="card-back">
-                    <h3>{qa['answer']}</h3>
+                    <div class="card-content">
+                        <h3>{qa['answer']}</h3>
+                    </div>
                 </div>
             </div>
         </div>
@@ -185,15 +192,43 @@ def render_flippable_cards(qa_pairs):
     # Close the container
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Main app logic
-if model is not None:
+# Title
+st.title("Flash Card Game")
+
+# Initialize session state for Q&A pairs if not exists
+if 'qa_pairs' not in st.session_state:
+    st.session_state.qa_pairs = []
+
+# Sidebar
+with st.sidebar:
+    st.header("Controls")
+    
+    # Slider for number of questions
+    num_questions = st.slider("Number of Questions", min_value=5, max_value=20, value=10)
+    
+    # Segmented control for difficulty
+    difficulty = st.radio("Difficulty", ["Easy", "Medium", "Hard"])
+
+# Main content area
+# File uploader
+st.subheader("Upload a file")
+uploaded_file = st.file_uploader("Choose a file (PDF, TXT, DOCX)", type=["pdf", "txt", "docx"])
+
+# Text input
+st.subheader("Or enter text directly")
+text_input = st.text_area("", height=200, placeholder="Enter your text here...")
+
+# Generate button
+if st.button("Generate Flash Cards", type="primary"):
     # Parse uploaded file or use text input
     input_text = parse_file(uploaded_file) if uploaded_file else text_input
-
+    
     # Generate Q&A pairs
-    qa_pairs = generate_qa_pairs(input_text, num_questions, difficulty)
+    st.session_state.qa_pairs = generate_qa_pairs(input_text, num_questions, difficulty)
 
+# Display cards
+if model is not None:
     # Display flippable cards
-    render_flippable_cards(qa_pairs)
+    render_flippable_cards(st.session_state.qa_pairs)
 else:
     st.error("Failed to load the model. Please try refreshing the page.") 

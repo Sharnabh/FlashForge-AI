@@ -263,6 +263,55 @@ st.markdown("""
                 grid-template-columns: repeat(3, 1fr);
             }
         }
+
+        /* Edit mode styles */
+        .stExpander {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: 2px solid var(--accent-color);
+        }
+        
+        .stExpander:hover {
+            border-color: var(--primary-color);
+        }
+        
+        /* Text area styling in edit mode */
+        .stTextArea > div > div {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid var(--accent-color);
+            min-height: 100px;
+        }
+        
+        /* Delete button styling */
+        .stButton > button[data-testid="baseButton-secondary"] {
+            background-color: #E53E3E !important;
+            color: white !important;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .stButton > button[data-testid="baseButton-secondary"]:hover {
+            background-color: #C53030 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        /* Checkbox styling */
+        .stCheckbox > div {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid var(--accent-color);
+            margin: 1rem 0;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -562,34 +611,58 @@ def render_flippable_cards(qa_pairs):
         return
         
     print(f"\nRendering {len(qa_pairs)} cards")
-    # Create the cards container
-    st.markdown('<div class="card-container">', unsafe_allow_html=True)
     
-    # Add each card
-    for i, qa in enumerate(qa_pairs):
-        print(f"\nRendering card {i+1}:")
-        print(f"Question: {qa['question']}")
-        print(f"Answer: {qa['answer']}")
-        card_html = f"""
-        <div class="card">
-            <div class="card-inner">
-                <div class="card-front">
-                    <div class="card-content">
-                        <h3>{qa['question']}</h3>
+    # Add edit mode toggle
+    edit_mode = st.checkbox("✏️ Edit Mode", help="Enable editing of questions and answers")
+    
+    if edit_mode:
+        # Create an editable interface
+        st.subheader("📝 Review and Edit Q&A Pairs")
+        for i, qa in enumerate(qa_pairs):
+            with st.expander(f"Q&A Pair {i+1}", expanded=True):
+                col1, col2 = st.columns(2)
+                with col1:
+                    new_question = st.text_area("Question", qa['question'], key=f"q_{i}")
+                with col2:
+                    new_answer = st.text_area("Answer", qa['answer'], key=f"a_{i}")
+                
+                # Update the Q&A pair if modified
+                if new_question != qa['question'] or new_answer != qa['answer']:
+                    qa_pairs[i] = {"question": new_question, "answer": new_answer}
+                
+                # Add delete button
+                if st.button("🗑️ Delete", key=f"del_{i}"):
+                    qa_pairs.pop(i)
+                    st.rerun()
+    else:
+        # Create the cards container
+        st.markdown('<div class="card-container">', unsafe_allow_html=True)
+        
+        # Add each card
+        for i, qa in enumerate(qa_pairs):
+            print(f"\nRendering card {i+1}:")
+            print(f"Question: {qa['question']}")
+            print(f"Answer: {qa['answer']}")
+            card_html = f"""
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-content">
+                            <h3>{qa['question']}</h3>
+                        </div>
                     </div>
-                </div>
-                <div class="card-back">
-                    <div class="card-content">
-                        <h3>{qa['answer']}</h3>
+                    <div class="card-back">
+                        <div class="card-content">
+                            <h3>{qa['answer']}</h3>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        """
-        st.markdown(card_html, unsafe_allow_html=True)
-    
-    # Close the container
-    st.markdown('</div>', unsafe_allow_html=True)
+            """
+            st.markdown(card_html, unsafe_allow_html=True)
+        
+        # Close the container
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # Title with emoji
 st.title("✨ FlashForge-AI ✨")

@@ -2,8 +2,7 @@ import streamlit as st
 import os
 import tempfile
 import warnings
-from transformers.models.t5.tokenization_t5 import T5Tokenizer
-from transformers.models.t5.modeling_t5 import T5ForConditionalGeneration
+import google.generativeai as genai
 import PyPDF2
 import docx
 
@@ -28,20 +27,19 @@ num_questions = st.slider("Number of Questions", min_value=5, max_value=20, valu
 # Segmented control for difficulty
 difficulty = st.radio("Difficulty", ["Easy", "Medium", "Hard"])
 
-# Load Flan T5 Large model and tokenizer
+# Initialize Gemini model
 @st.cache_resource
 def load_model():
     try:
-        model_name = "google/flan-t5-large"
-        with st.spinner("Loading model and tokenizer..."):
-            tokenizer = T5Tokenizer.from_pretrained(model_name, legacy=False)
-            model = T5ForConditionalGeneration.from_pretrained(model_name)
-        return model, tokenizer
+        # Configure the Gemini API
+        genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        return model
     except Exception as e:
         st.error(f"Error loading model: {str(e)}")
-        return None, None
+        return None
 
-model, tokenizer = load_model()
+model = load_model()
 
 # Function to parse uploaded file
 def parse_file(uploaded_file):
@@ -65,7 +63,7 @@ def parse_file(uploaded_file):
         st.error(f"Error parsing file: {str(e)}")
         return ""
 
-# Function to generate Q&A pairs using Flan T5 Large
+# Function to generate Q&A pairs using Gemini
 @st.cache_data(ttl=3600)  # Cache results for 1 hour
 def generate_qa_pairs(text, num_questions, difficulty):
     if not text.strip():
@@ -74,50 +72,34 @@ def generate_qa_pairs(text, num_questions, difficulty):
     
     try:
         with st.spinner("Generating questions and answers..."):
-            # First generate questions
-            question_prompt = f"Generate {num_questions} {difficulty.lower()} questions based on the following text: {text}"
-            question_inputs = tokenizer(question_prompt, return_tensors="pt", max_length=512, truncation=True)
-            question_outputs = model.generate(
-                **question_inputs,
-                max_length=256,  # Reduced max length
-                num_beams=num_questions,  # Match num_beams with num_questions
-                num_return_sequences=num_questions,
-                early_stopping=True,
-                no_repeat_ngram_size=2,
-                do_sample=True,  # Enable sampling for faster generation
-                top_k=50,        # Limit vocabulary to top 50 tokens
-                top_p=0.95       # Nucleus sampling
-            )
+            prompt = f"""Create {num_questions} {difficulty.lower()} difficulty flash cards based on this text. 
+            For each card, provide a question and its answer.
+            Format each card as: Q: [question] A: [answer]
             
+            Text: {text}"""
+            
+            response = model.generate_content(prompt)
+            content = response.text.strip()
+            
+            # Parse Q&A pairs
             qa_pairs = []
-            progress_bar = st.progress(0)
+            lines = content.split('\n')
+            current_q = None
+            current_a = None
             
-            for i, question_output in enumerate(question_outputs):
-                question = tokenizer.decode(question_output, skip_special_tokens=True)
-                if not question.endswith("?"):
-                    question += "?"
-                
-                # Generate answer for each question
-                answer_prompt = f"Answer the following question based on the text: {text}\nQuestion: {question}"
-                answer_inputs = tokenizer(answer_prompt, return_tensors="pt", max_length=512, truncation=True)
-                answer_output = model.generate(
-                    **answer_inputs,
-                    max_length=256,  # Reduced max length
-                    num_beams=5,     # Keep this at 5 for answer generation
-                    early_stopping=True,
-                    do_sample=True,  # Enable sampling for faster generation
-                    top_k=50,        # Limit vocabulary to top 50 tokens
-                    top_p=0.95       # Nucleus sampling
-                )
-                answer = tokenizer.decode(answer_output[0], skip_special_tokens=True)
-                
-                qa_pairs.append({"question": question, "answer": answer})
-                
-                # Update progress
-                progress = (i + 1) / len(question_outputs)
-                progress_bar.progress(progress)
+            for line in lines:
+                line = line.strip()
+                if line.startswith('Q:'):
+                    if current_q and current_a:
+                        qa_pairs.append({"question": current_q, "answer": current_a})
+                    current_q = line[2:].strip()
+                elif line.startswith('A:'):
+                    current_a = line[2:].strip()
             
-            return qa_pairs
+            if current_q and current_a:
+                qa_pairs.append({"question": current_q, "answer": current_a})
+            
+            return qa_pairs[:num_questions]
     except Exception as e:
         st.error(f"Error generating Q&A pairs: {str(e)}")
         return []
@@ -204,7 +186,7 @@ def render_flippable_cards(qa_pairs):
     st.markdown('</div>', unsafe_allow_html=True)
 
 # Main app logic
-if model is not None and tokenizer is not None:
+if model is not None:
     # Parse uploaded file or use text input
     input_text = parse_file(uploaded_file) if uploaded_file else text_input
 

@@ -1,0 +1,54 @@
+[
+  {
+    "question": "Who performed the Geiger-Marsden experiment in 1911, which involved scattering \u03b1-particles by a thin metal foil? Test",
+    "answer": "Hans Geiger and Ernst Marsden."
+  },
+  {
+    "question": "What would happen to the earth's distance from the sun if the dimensions of the solar system had the same proportions as those of the atom?",
+    "answer": "The earth would be much farther away from the sun than it actually is."
+  },
+  {
+    "question": "Why do most \u03b1-particles pass through a thin metal foil without suffering any collisions?",
+    "answer": "Because the atom is largely empty space, with the nucleus occupying a very small volume."
+  },
+  {
+    "question": "What is the impact parameter in the context of Rutherford scattering?",
+    "answer": "The perpendicular distance of the initial velocity vector of the \u03b1-particle from the center of the nucleus."
+  },
+  {
+    "question": "What is the size of the nucleus according to Rutherford's experiments?",
+    "answer": "About 10^(-15) m to 10^(-14) m."
+  },
+  {
+    "question": "What is the analogy used by Rutherford to describe the nucleus and electron in an atom?",
+    "answer": "The nucleus is analogous to the sun, and the electron is analogous to the earth orbiting around the sun."
+  },
+  {
+    "question": "What is the ratio of the radius of the electron's orbit to the radius of the nucleus in Rutherford's nuclear model?",
+    "answer": "Approximately 10^5."
+  },
+  {
+    "question": "Who proposed a simple empirical formula in 1885 to calculate the wavelengths of a group of lines emitted by atomic hydrogen?",
+    "answer": "Johann Jakob Balmer."
+  },
+  {
+    "question": "What was the purpose of the Geiger-Marsden experiment?",
+    "answer": "To investigate the atomic structure by studying the scattering of \u03b1-particles by a thin metal foil."
+  },
+  {
+    "question": "What is the relationship between the impact parameter and the scattering angle in Rutherford scattering?",
+    "answer": "A smaller impact parameter results in a larger scattering angle, while a larger impact parameter results in a smaller scattering angle."
+  },
+  {
+    "question": "What is the name of the model proposed by J.J. Thomson in 1898 to describe the structure of an atom?",
+    "answer": "Plum pudding model of the atom."
+  },
+  {
+    "question": "What is the significance of the Rutherford's nuclear model of the atom?",
+    "answer": "It revolutionized our understanding of the atom, showing that the positive charge and most of the mass are concentrated in a small nucleus, with electrons orbiting around it."
+  },
+  {
+    "question": "What was the significance of Ernst Rutherford's experiment on \u03b1-particles emitted by some radioactive elements in 1906?",
+    "answer": "The experiment led to the proposal of the Rutherford's nuclear model of the atom, where the entire positive charge and most of the mass of the atom are concentrated in a small volume called the nucleus."
+  }
+]
